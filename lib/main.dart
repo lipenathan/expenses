@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:expenses/components/transaction_form.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'components/chart.dart';
@@ -40,11 +42,16 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final List<Transaction> _transactions = [
-    Transaction(id: 't0', title: 'Conta antiga', value: 310.76, date: DateTime.now().subtract(Duration(days: 33))),
+    Transaction(id: 't0', title: 'Conta antiga', value: 310.76, date: DateTime.now()),
     Transaction(
-        id: 't1', title: 'Novo tenis de corrida', value: 240.11, date: DateTime.now().subtract(Duration(days: 3))),
-    Transaction(id: 't2', title: 'Conta de luz', value: 240.11, date: DateTime.now().subtract(Duration(days: 4)))
+        id: 't1', title: 'Novo tenis de corrida', value: 240.11, date: DateTime.now().subtract(Duration(days: 1))),
+    Transaction(id: 't2', title: 'Conta de água', value: 725.11, date: DateTime.now().subtract(Duration(days: 2))),
+    Transaction(id: 't3', title: 'Conta de telefone', value: 821.11, date: DateTime.now().subtract(Duration(days: 3))),
+    Transaction(id: 't4', title: 'Cartão de crédito', value: 70.11, date: DateTime.now().subtract(Duration(days: 4))),
+    Transaction(id: 't5', title: 'Nova cozinha', value: 100.69, date: DateTime.now().subtract(Duration(days: 5))),
+    Transaction(id: 't6', title: 'Ferraentas', value: 20.11, date: DateTime.now().subtract(Duration(days: 6)))
   ];
+  bool _showChart = false;
 
   List<Transaction> get _recentTransactions {
     return _transactions.where((tr) {
@@ -78,28 +85,86 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: const Text('Despesas pessoais'),
-          actions: <Widget>[
-            IconButton(
-                onPressed: () => {_openTransactionFormModal(context)}, icon: Icon(Icons.add), color: Colors.white)
-          ],
-        ),
-        body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
+    final mediaQuery = MediaQuery.of(context);
+
+    bool isLandscape = mediaQuery.orientation == Orientation.landscape;
+
+    var actions = <Widget>[
+        if (isLandscape)
+          IconButton(
+            onPressed: () => {
+              setState(() {
+                _showChart = !_showChart;
+              })
+            },
+            icon: _showChart
+                ? Icon(
+                    Icons.list,
+                    color: Colors.white,
+                  )
+                : Icon(Icons.show_chart, color: Colors.white),
+          ),
+        IconButton(
+          onPressed: () => {_openTransactionFormModal(context)},
+          icon: Icon(Icons.add),
+          color: Colors.white,
+        )
+      ];
+    final appBar = AppBar(
+      title: Text(
+        'Despesas pessoais',
+        style: TextStyle(fontSize: mediaQuery.textScaler.scale(24.00)),
+      ),
+      actions: actions,
+    );
+
+    final double availableHeight = mediaQuery.size.height - appBar.preferredSize.height - mediaQuery.padding.top;
+
+    var bodyPage = SafeArea(
+      //área segura para iOS, para dispositivos que possuem note, por exemplo.
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            if (_showChart || !isLandscape)
               Container(
                 child: Container(
-                    child: Chart(_recentTransactions), margin: EdgeInsets.symmetric(vertical: 4, horizontal: 12)),
+                  height: availableHeight * (isLandscape ? 0.8 : 0.3),
+                  child: Chart(_recentTransactions),
+                  margin: EdgeInsets.symmetric(
+                    vertical: 4,
+                    horizontal: 12,
+                  ),
+                ),
               ),
-              TransactionList(_transactions, _deleteTransaction)
-            ],
-          ),
+            if (!_showChart || !isLandscape)
+              Container(
+                  height: availableHeight * (isLandscape ? 1 : 0.7),
+                  child: TransactionList(
+                    _transactions,
+                    _deleteTransaction,
+                  ))
+          ],
         ),
-        floatingActionButton:
-            FloatingActionButton(onPressed: () => {_openTransactionFormModal(context)}, child: Icon(Icons.add)),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat);
+      ),
+    );
+
+    return Platform.isIOS
+        ? CupertinoPageScaffold( //cria um scaffold(andaime/estrutura específica para o iOS)
+            child: bodyPage,
+      navigationBar: CupertinoNavigationBar(//um navigation bar que possui carácterísticas específas para o iOS.
+        middle: const Text('Despesas Pessoais'),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: actions,
+        ),
+      ),
+          )
+        : Scaffold(
+            appBar: appBar,
+            body: bodyPage,
+            floatingActionButton:
+                FloatingActionButton(onPressed: () => {_openTransactionFormModal(context)}, child: Icon(Icons.add)),
+            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat);
   }
 }
