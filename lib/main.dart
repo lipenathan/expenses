@@ -90,26 +90,26 @@ class _MyHomePageState extends State<MyHomePage> {
     bool isLandscape = mediaQuery.orientation == Orientation.landscape;
 
     var actions = <Widget>[
-        if (isLandscape)
-          IconButton(
-            onPressed: () => {
-              setState(() {
-                _showChart = !_showChart;
-              })
-            },
-            icon: _showChart
-                ? Icon(
-                    Icons.list,
-                    color: Colors.white,
-                  )
-                : Icon(Icons.show_chart, color: Colors.white),
-          ),
+      if (isLandscape)
         IconButton(
-          onPressed: () => {_openTransactionFormModal(context)},
-          icon: Icon(Icons.add),
-          color: Colors.white,
-        )
-      ];
+          onPressed: () => {
+            setState(() {
+              _showChart = !_showChart;
+            })
+          },
+          icon: _showChart
+              ? Icon(
+                  Icons.list,
+                  color: Colors.white,
+                )
+              : Icon(Icons.show_chart, color: Colors.white),
+        ),
+      IconButton(
+        onPressed: () => {_openTransactionFormModal(context)},
+        icon: Icon(Icons.add),
+        color: Colors.white,
+      )
+    ];
     final appBar = AppBar(
       title: Text(
         'Despesas pessoais',
@@ -126,6 +126,12 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            // if (isLandscape)
+            //   Switch.adaptive( //adaptative mostra um botão para cada tipo de OS
+            //       value: _showChart,
+            //       onChanged: (value) {
+            //         _showChart = value;
+            //       }),
             if (_showChart || !isLandscape)
               Container(
                 child: Container(
@@ -150,15 +156,17 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     return Platform.isIOS
-        ? CupertinoPageScaffold( //cria um scaffold(andaime/estrutura específica para o iOS)
+        ? CupertinoPageScaffold(
+            //cria um scaffold(andaime/estrutura específica para o iOS)
             child: bodyPage,
-      navigationBar: CupertinoNavigationBar(//um navigation bar que possui carácterísticas específas para o iOS.
-        middle: const Text('Despesas Pessoais'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: actions,
-        ),
-      ),
+            navigationBar: CupertinoNavigationBar(
+              //um navigation bar que possui carácterísticas específas para o iOS.
+              middle: const Text('Despesas Pessoais'),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: actions,
+              ),
+            ),
           )
         : Scaffold(
             appBar: appBar,
