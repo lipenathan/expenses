@@ -40,7 +40,7 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   final List<Transaction> _transactions = [
     Transaction(id: 't0', title: 'Conta antiga', value: 310.76, date: DateTime.now()),
     Transaction(
@@ -57,6 +57,17 @@ class _MyHomePageState extends State<MyHomePage> {
     return _transactions.where((tr) {
       return tr.date.isAfter(DateTime.now().subtract(Duration(days: 7)));
     }).toList();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print(state);
   }
 
   _openTransactionFormModal(BuildContext context) {
