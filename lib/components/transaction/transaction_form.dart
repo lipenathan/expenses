@@ -1,14 +1,18 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'dart:math';
 
-import 'adaptative/adaptative_button.dart';
-import 'adaptative/adaptative_date_picker.dart';
-import 'adaptative/adaptative_text_field.dart';
+import 'package:flutter/material.dart';
+
+import '../../models/transaction.dart';
+import '../adaptative/adaptative_button.dart';
+import '../adaptative/adaptative_month_picker.dart';
+import '../adaptative/adaptative_text_field.dart';
+import '../adaptative/months.dart';
 
 class TransactionForm extends StatefulWidget {
-  final void Function(String, double, DateTime) onSubmit;
+  final void Function(Transaction) onSubmit;
+  Transaction? tr;
 
-  TransactionForm(this.onSubmit);
+  TransactionForm(this.onSubmit, {super.key, this.tr});
 
   @override
   State<TransactionForm> createState() => _TransactionFormState();
@@ -17,7 +21,7 @@ class TransactionForm extends StatefulWidget {
 class _TransactionFormState extends State<TransactionForm> {
   final _titleControler = TextEditingController();
   final _valueController = TextEditingController();
-  DateTime _selectedDate = DateTime.now();
+  Month _selectedDate = Months.getActualMonth();
 
   _submitForm() {
     final title = _titleControler.text;
@@ -26,11 +30,23 @@ class _TransactionFormState extends State<TransactionForm> {
     if (title.isEmpty || value <= 0) {
       return;
     }
-    widget.onSubmit(title, value, _selectedDate);
+
+    if (widget.tr != null) {
+      final newTransaction = Transaction(id: widget.tr!.id, title: title, value: value, month: _selectedDate);
+      widget.onSubmit(newTransaction);
+    } else {
+      final newTransaction = Transaction(id: Random().nextDouble().toString(), title: title, value: value, month: _selectedDate);
+      widget.onSubmit(newTransaction);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if(widget.tr != null) {
+      _titleControler.text = widget.tr!.title;
+      _valueController.text = widget.tr!.value.toString();
+      _selectedDate = widget.tr!.month;
+    }
     return SingleChildScrollView(
       child: Card(
         elevation: 0,
@@ -42,7 +58,10 @@ class _TransactionFormState extends State<TransactionForm> {
             top: 10,
             right: 10,
             left: 10,
-            bottom: 10 + MediaQuery.of(context).viewInsets.bottom,
+            bottom: 10 + MediaQuery
+                .of(context)
+                .viewInsets
+                .bottom,
           ),
           child: Column(children: <Widget>[
             AdaptativeTextField(controller: _titleControler, label: "Título", onSubmitted: (_) => _submitForm()),
@@ -53,10 +72,11 @@ class _TransactionFormState extends State<TransactionForm> {
                 onSubmitted: (_) => _submitForm()),
             Container(
               height: 70,
-              child: AdaptativeDatePicker(
-                onDateChanged: (newDate) {
+              child: AdaptativeMonthPicker(
+                    (newDate) {
                   _selectedDate = newDate;
                 },
+                month: widget.tr?.month
               ),
             ),
             Row(
@@ -66,7 +86,7 @@ class _TransactionFormState extends State<TransactionForm> {
                   onPressed: () {
                     _submitForm();
                   },
-                  label: "Nova transação",
+                  label: widget.tr == null? "Nova transação": "Editar",
                 ),
               ],
             )

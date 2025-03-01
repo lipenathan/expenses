@@ -1,12 +1,12 @@
 import 'dart:io';
-import 'dart:math';
 
-import 'package:expenses/components/transaction_form.dart';
+import 'package:expenses/components/transaction/transaction_form.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-import 'components/chart.dart';
-import 'components/transaction_list.dart';
+import 'components/chart/chart.dart';
+import 'components/transaction/transaction_list.dart';
 import 'models/transaction.dart';
 
 main() => runApp(ExpensesApp());
@@ -41,23 +41,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
-  final List<Transaction> _transactions = [
-    Transaction(id: 't0', title: 'Conta antiga', value: 310.76, date: DateTime.now()),
-    Transaction(
-        id: 't1', title: 'Novo tenis de corrida', value: 240.11, date: DateTime.now().subtract(Duration(days: 1))),
-    Transaction(id: 't2', title: 'Conta de água', value: 725.11, date: DateTime.now().subtract(Duration(days: 2))),
-    Transaction(id: 't3', title: 'Conta de telefone', value: 821.11, date: DateTime.now().subtract(Duration(days: 3))),
-    Transaction(id: 't4', title: 'Cartão de crédito', value: 70.11, date: DateTime.now().subtract(Duration(days: 4))),
-    Transaction(id: 't5', title: 'Nova cozinha', value: 100.69, date: DateTime.now().subtract(Duration(days: 5))),
-    Transaction(id: 't6', title: 'Ferraentas', value: 20.11, date: DateTime.now().subtract(Duration(days: 6)))
-  ];
+  final List<Transaction> _transactions = [];
   bool _showChart = false;
-
-  List<Transaction> get _recentTransactions {
-    return _transactions.where((tr) {
-      return tr.date.isAfter(DateTime.now().subtract(Duration(days: 7)));
-    }).toList();
-  }
 
   @override
   void initState() {
@@ -78,11 +63,22 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         });
   }
 
-  _addTransactions(String title, double value, DateTime date) {
-    final newTransaction = Transaction(id: Random().nextDouble().toString(), title: title, value: value, date: date);
+  _openEditTransactionFormModal(BuildContext context, Transaction tr) {
+    showModalBottomSheet(
+        context: context,
+        builder: (ctx) {
+          return TransactionForm(_addTransactions, tr: tr);
+        });
+  }
 
+  _addTransactions(Transaction tr) {
     setState(() {
-      _transactions.add(newTransaction);
+      final index = _transactions.indexWhere((element) => tr.id == element.id);
+      if (index >= 0) {
+        _transactions[index] = tr;
+      } else {
+        _transactions.add(tr);
+      }
     });
 
     Navigator.of(context).pop();
@@ -97,6 +93,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
+
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
     bool isLandscape = mediaQuery.orientation == Orientation.landscape;
 
@@ -137,17 +135,11 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            // if (isLandscape)
-            //   Switch.adaptive( //adaptative mostra um botão para cada tipo de OS
-            //       value: _showChart,
-            //       onChanged: (value) {
-            //         _showChart = value;
-            //       }),
             if (_showChart || !isLandscape)
               Container(
                 child: Container(
                   height: availableHeight * (isLandscape ? 0.8 : 0.3),
-                  child: Chart(_recentTransactions),
+                  child: Chart(_transactions, 6),
                   margin: EdgeInsets.symmetric(
                     vertical: 4,
                     horizontal: 12,
@@ -155,12 +147,17 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                 ),
               ),
             if (!_showChart || !isLandscape)
-              Container(
-                  height: availableHeight * (isLandscape ? 1 : 0.7),
-                  child: TransactionList(
-                    _transactions,
-                    _deleteTransaction,
-                  ))
+              Column(
+                children: [
+                  Text("Últimas despesas", style: Theme.of(context).textTheme.titleLarge),
+                  Container(
+                      padding: EdgeInsets.only(top: 40),
+                      height: availableHeight * (isLandscape ? 1 : 0.7),
+                      child: TransactionList(_transactions, _deleteTransaction, (tr) {
+                        _openEditTransactionFormModal(context, tr);
+                      }))
+                ],
+              )
           ],
         ),
       ),
