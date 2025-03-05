@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../../models/transaction.dart';
+import '../../../models/transaction.dart';
 import '../adaptative/adaptative_button.dart';
 import '../adaptative/adaptative_month_picker.dart';
 import '../adaptative/adaptative_text_field.dart';

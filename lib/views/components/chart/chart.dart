@@ -1,7 +1,9 @@
-import 'package:expenses/components/adaptative/months.dart';
-import 'package:expenses/components/chart/chart_bar.dart';
 import 'package:expenses/models/transaction.dart';
+import 'package:expenses/views/Routes.dart';
 import 'package:flutter/material.dart';
+
+import '../adaptative/months.dart';
+import 'chart_bar.dart';
 
 class Chart extends StatefulWidget {
   final List<Transaction> transactions;
@@ -53,10 +55,13 @@ class _ChartState extends State<Chart> {
       return Flexible(
           fit: FlexFit.tight,
           child: ChartBar(
-            label: lastMonths[index].monthShort,
-            percentage: percentage,
-            value: total,
-          ));
+              label: lastMonths[index].monthShort,
+              percentage: percentage,
+              value: total,
+              onItemClick: () {
+                final transactions = widget.transactions.where((tr) => tr.month == lastMonths[index]).toList();
+                Navigator.of(context).pushNamed(Routes.MONTH_TRANSACTIONS, arguments: transactions);
+              }));
     });
 
     return Card(

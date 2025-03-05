@@ -1,4 +1,4 @@
-import 'package:expenses/components/adaptative/months.dart';
+import '../views/components/adaptative/months.dart';
 
 class Transaction {
   final String id;
