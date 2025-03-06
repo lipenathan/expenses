@@ -60,7 +60,14 @@ class _ChartState extends State<Chart> {
               value: total,
               onItemClick: () {
                 final transactions = widget.transactions.where((tr) => tr.month == lastMonths[index]).toList();
-                Navigator.of(context).pushNamed(Routes.MONTH_TRANSACTIONS, arguments: transactions);
+                var monthName = "";
+                if (transactions.isEmpty) {
+                  monthName = lastMonths[index].month;
+                } else {
+                  monthName = transactions.first.month.month;
+                }
+                Navigator.of(context).pushNamed(Routes.MONTH_TRANSACTIONS,
+                    arguments: Map<String, List<Transaction>>.of({monthName: transactions}));
               }));
     });
 
