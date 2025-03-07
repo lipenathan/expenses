@@ -1,4 +1,3 @@
-
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -18,11 +17,31 @@ class ViewHome extends StatefulWidget {
 class _ViewHomeState extends State<ViewHome> with WidgetsBindingObserver {
   final List<Transaction> _transactions = [];
   bool _showChart = false;
+  final dropDownList = [
+    const DropdownMenuItem(
+      value: 3,
+      child: Text("3"),
+    ),
+    const DropdownMenuItem(
+      value: 4,
+      child: Text("4"),
+    ),
+    const DropdownMenuItem(
+      value: 5,
+      child: Text("5"),
+    ),
+    const DropdownMenuItem(
+      value: 6,
+      child: Text("6"),
+    )
+  ];
+  int _selectedChartNumber = 0;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _selectedChartNumber = dropDownList.first.value ?? 0;
   }
 
   @override
@@ -82,15 +101,15 @@ class _ViewHomeState extends State<ViewHome> with WidgetsBindingObserver {
             })
           },
           icon: _showChart
-              ? Icon(
-            Icons.list,
-            color: Colors.white,
-          )
-              : Icon(Icons.show_chart, color: Colors.white),
+              ? const Icon(
+                  Icons.list,
+                  color: Colors.white,
+                )
+              : const Icon(Icons.show_chart, color: Colors.white),
         ),
       IconButton(
         onPressed: () => {_openTransactionFormModal(context)},
-        icon: Icon(Icons.add),
+        icon: const Icon(Icons.add),
         color: Colors.white,
       )
     ];
@@ -111,22 +130,43 @@ class _ViewHomeState extends State<ViewHome> with WidgetsBindingObserver {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             if (_showChart || !isLandscape)
-              Container(
-                child: Container(
-                  height: availableHeight * (isLandscape ? 0.8 : 0.3),
-                  child: Chart(_transactions, 6),
-                  margin: EdgeInsets.symmetric(
-                    vertical: 4,
-                    horizontal: 12,
+              Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.only(right: 30),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text("nº meses  ", style: Theme.of(context).textTheme.bodyLarge),
+                        DropdownButton(
+                          items: dropDownList,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedChartNumber = value ?? 0;
+                            });
+                          },
+                          value: _selectedChartNumber,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        )
+                      ],
+                    ),
                   ),
-                ),
+                  Container(
+                    height: availableHeight * (isLandscape ? 0.8 : 0.3),
+                    margin: const EdgeInsets.symmetric(
+                      vertical: 4,
+                      horizontal: 12,
+                    ),
+                    child: Chart(_transactions, _selectedChartNumber),
+                  ),
+                ],
               ),
             if (!_showChart || !isLandscape)
               Column(
                 children: [
                   Text("Últimas despesas", style: Theme.of(context).textTheme.titleLarge),
                   Container(
-                      padding: EdgeInsets.only(top: 40),
+                      padding: const EdgeInsets.only(top: 40),
                       height: availableHeight * (isLandscape ? 1 : 0.7),
                       child: TransactionList(_transactions, _deleteTransaction, (tr) {
                         _openEditTransactionFormModal(context, tr);
@@ -140,22 +180,22 @@ class _ViewHomeState extends State<ViewHome> with WidgetsBindingObserver {
 
     return Platform.isIOS
         ? CupertinoPageScaffold(
-      //cria um scaffold(andaime/estrutura específica para o iOS)
-      child: bodyPage,
-      navigationBar: CupertinoNavigationBar(
-        //um navigation bar que possui carácterísticas específas para o iOS.
-        middle: const Text('Despesas Pessoais'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: actions,
-        ),
-      ),
-    )
+            //cria um scaffold(andaime/estrutura específica para o iOS)
+            child: bodyPage,
+            navigationBar: CupertinoNavigationBar(
+              //um navigation bar que possui carácterísticas específas para o iOS.
+              middle: const Text('Despesas Pessoais'),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: actions,
+              ),
+            ),
+          )
         : Scaffold(
-        appBar: appBar,
-        body: bodyPage,
-        floatingActionButton:
-        FloatingActionButton(onPressed: () => {_openTransactionFormModal(context)}, child: Icon(Icons.add)),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat);
+            appBar: appBar,
+            body: bodyPage,
+            floatingActionButton: FloatingActionButton(
+                onPressed: () => {_openTransactionFormModal(context)}, child: const Icon(Icons.add)),
+            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat);
   }
 }

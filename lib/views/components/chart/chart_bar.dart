@@ -14,7 +14,13 @@ class ChartBar extends StatelessWidget {
       return InkWell(
         onTap: onItemClick,
         child: Column(children: <Widget>[
-          Container(height: constraints.maxHeight * 0.15, child: FittedBox(child: Text('${value.toStringAsFixed(2)}'))),
+          Container(
+              height: constraints.maxHeight * 0.15,
+              child: FittedBox(
+                  child: Text(
+                'R\$${value.toStringAsFixed(2)}',
+                style: Theme.of(context).textTheme.labelSmall,
+              ))),
           SizedBox(height: constraints.maxHeight * 0.05),
           Container(
               height: constraints.maxHeight * 0.6,
